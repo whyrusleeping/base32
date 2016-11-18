@@ -6,10 +6,8 @@
 package base32
 
 import (
-	"bytes"
 	"io"
 	"strconv"
-	"strings"
 )
 
 /*
@@ -66,13 +64,6 @@ var HexEncoding = NewEncoding(encodeHex)
 
 var RawStdEncoding = NewEncoding(encodeStd).WithPadding(NoPadding)
 var RawHexEncoding = NewEncoding(encodeHex).WithPadding(NoPadding)
-
-var removeNewlinesMapper = func(r rune) rune {
-	if r == '\r' || r == '\n' {
-		return -1
-	}
-	return r
-}
 
 /*
  * Encoder
@@ -344,17 +335,29 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err error) {
 // written. If src contains invalid base32 data, it will return the
 // number of bytes successfully written and CorruptInputError.
 // New line characters (\r and \n) are ignored.
-func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
-	src = bytes.Map(removeNewlinesMapper, src)
-	n, _, err = enc.decode(dst, src)
+func (enc *Encoding) Decode(dst, s []byte) (n int, err error) {
+	stripped := make([]byte, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c != '\r' && c != '\n' {
+			stripped = append(stripped, c)
+		}
+	}
+	n, _, err = enc.decode(dst, stripped)
 	return
 }
 
 // DecodeString returns the bytes represented by the base32 string s.
 func (enc *Encoding) DecodeString(s string) ([]byte, error) {
-	s = strings.Map(removeNewlinesMapper, s)
+	stripped := make([]byte, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c != '\r' && c != '\n' {
+			stripped = append(stripped, c)
+		}
+	}
 	dbuf := make([]byte, enc.DecodedLen(len(s)))
-	n, _, err := enc.decode(dbuf, []byte(s))
+	n, _, err := enc.decode(dbuf, stripped)
 	return dbuf[:n], err
 }
 
