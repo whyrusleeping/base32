@@ -336,6 +336,7 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err error) {
 // number of bytes successfully written and CorruptInputError.
 // New line characters (\r and \n) are ignored.
 func (enc *Encoding) Decode(dst, s []byte) (n int, err error) {
+	// FIXME: if dst is the same as s use decodeInPlace
 	stripped := make([]byte, 0, len(s))
 	for _, c := range s {
 		if c != '\r' && c != '\n' {
@@ -346,18 +347,27 @@ func (enc *Encoding) Decode(dst, s []byte) (n int, err error) {
 	return
 }
 
+func (enc *Encoding) decodeInPlace(strb []byte) (n int, err error) {
+	off := 0
+	for _, b := range strb {
+		if b == '\n' || b == '\r' {
+			continue
+		}
+		strb[off] = b
+		off++
+	}
+	n, _, err = enc.decode(strb, strb[:off])
+	return
+}
+
 // DecodeString returns the bytes represented by the base32 string s.
 func (enc *Encoding) DecodeString(s string) ([]byte, error) {
-	stripped := make([]byte, 0, len(s))
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		if c != '\r' && c != '\n' {
-			stripped = append(stripped, c)
-		}
+	strb := []byte(s)
+	n, err := enc.decodeInPlace(strb)
+	if err != nil {
+		return nil, err
 	}
-	dbuf := make([]byte, enc.DecodedLen(len(s)))
-	n, _, err := enc.decode(dbuf, stripped)
-	return dbuf[:n], err
+	return strb[:n], nil
 }
 
 type decoder struct {
