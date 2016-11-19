@@ -337,8 +337,7 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err error) {
 // New line characters (\r and \n) are ignored.
 func (enc *Encoding) Decode(dst, s []byte) (n int, err error) {
 	stripped := make([]byte, 0, len(s))
-	for i := 0; i < len(s); i++ {
-		c := s[i]
+	for _, c := range s {
 		if c != '\r' && c != '\n' {
 			stripped = append(stripped, c)
 		}
