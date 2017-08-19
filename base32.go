@@ -47,6 +47,36 @@ func NewEncoding(encoder string) *Encoding {
 	return e
 }
 
+// NewEncoding returns a new case insensitive Encoding defined by the
+// given alphabet, which must be a 32-byte string.
+func NewEncodingCI(encoder string) *Encoding {
+	e := new(Encoding)
+	e.padChar = StdPadding
+	e.encode = encoder
+	for i := 0; i < len(e.decodeMap); i++ {
+		e.decodeMap[i] = 0xFF
+	}
+	for i := 0; i < len(encoder); i++ {
+		e.decodeMap[asciiToLower(encoder[i])] = byte(i)
+		e.decodeMap[asciiToUpper(encoder[i])] = byte(i)
+	}
+	return e
+}
+
+func asciiToLower(c byte) byte {
+	if c >= 'A' && c <= 'Z' {
+		return c + 32
+	}
+	return c
+}
+
+func asciiToUpper(c byte) byte {
+	if c >= 'a' && c <= 'z' {
+		return c - 32
+	}
+	return c
+}
+
 // WithPadding creates a new encoding identical to enc except
 // with a specified padding character, or NoPadding to disable padding.
 func (enc Encoding) WithPadding(padding rune) *Encoding {
@@ -56,14 +86,14 @@ func (enc Encoding) WithPadding(padding rune) *Encoding {
 
 // StdEncoding is the standard base32 encoding, as defined in
 // RFC 4648.
-var StdEncoding = NewEncoding(encodeStd)
+var StdEncoding = NewEncodingCI(encodeStd)
 
 // HexEncoding is the ``Extended Hex Alphabet'' defined in RFC 4648.
 // It is typically used in DNS.
-var HexEncoding = NewEncoding(encodeHex)
+var HexEncoding = NewEncodingCI(encodeHex)
 
-var RawStdEncoding = NewEncoding(encodeStd).WithPadding(NoPadding)
-var RawHexEncoding = NewEncoding(encodeHex).WithPadding(NoPadding)
+var RawStdEncoding = NewEncodingCI(encodeStd).WithPadding(NoPadding)
+var RawHexEncoding = NewEncodingCI(encodeHex).WithPadding(NoPadding)
 
 /*
  * Encoder
