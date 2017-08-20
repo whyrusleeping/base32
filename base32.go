@@ -24,6 +24,11 @@ type Encoding struct {
 	padChar   rune
 }
 
+// Alphabet returns the Base32 alphabet used
+func (enc *Encoding) Alphabet() string {
+	return enc.encode
+}
+
 const (
 	StdPadding rune = '='
 	NoPadding  rune = -1
