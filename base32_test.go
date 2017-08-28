@@ -17,7 +17,7 @@ type testpair struct {
 	decoded, encoded string
 }
 
-var pairs = []testpair{
+var pairsUpper = []testpair{
 	// RFC 4648 examples
 	{"", ""},
 	{"f", "MY======"},
@@ -38,6 +38,15 @@ var pairs = []testpair{
 	{"sure.", "ON2XEZJO"},
 }
 
+var pairs = pairsUpper
+
+func init() {
+	// also test lower case versions
+	for _, p := range pairsUpper {
+		pairs = append(pairs, testpair{p.decoded, strings.ToLower(p.encoded)})
+	}
+}
+
 var bigtest = testpair{
 	"Twas brillig, and the slithy toves",
 	"KR3WC4ZAMJZGS3DMNFTSYIDBNZSCA5DIMUQHG3DJORUHSIDUN53GK4Y=",
@@ -52,14 +61,14 @@ func testEqual(t *testing.T, msg string, args ...interface{}) bool {
 }
 
 func TestEncode(t *testing.T) {
-	for _, p := range pairs {
+	for _, p := range pairsUpper {
 		got := StdEncoding.EncodeToString([]byte(p.decoded))
 		testEqual(t, "Encode(%q) = %q, want %q", p.decoded, got, p.encoded)
 	}
 }
 
 func TestEncoder(t *testing.T) {
-	for _, p := range pairs {
+	for _, p := range pairsUpper {
 		bb := &bytes.Buffer{}
 		encoder := NewEncoder(StdEncoding, bb)
 		encoder.Write([]byte(p.decoded))
@@ -145,7 +154,7 @@ func TestDecodeCorrupt(t *testing.T) {
 	}{
 		{"", -1},
 		{"!!!!", 0},
-		{"x===", 0},
+		{"!===", 0},
 		{"AA=A====", 2},
 		{"AAA=AAAA", 3},
 		{"MMMMMMMMM", 8},
@@ -353,3 +362,4 @@ func TestNoPaddingRand(t *testing.T) {
 		}
 	}
 }
+
