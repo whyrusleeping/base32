@@ -10,6 +10,6 @@
   "language": "go",
   "license": "",
   "name": "base32",
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
 
